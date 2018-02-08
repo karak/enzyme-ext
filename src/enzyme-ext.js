@@ -13,7 +13,7 @@ function createReactWrapperProxy(wrapper) {
             // Wrap self-returning functions.
             // TODO: Enumerate all of them.
             case 'find':
-                return callAndWrap(target, key);
+                return wrapSelfReturningFunction(target, key);
             // the others
             default:
                 return target[key]; 
@@ -32,8 +32,10 @@ function createReactWrapperProxy(wrapper) {
     }
 
     /** Call the original function that returns `this` and wrap the return value */
-    function callAndWrap(target, key) {
-        return createReactWrapperProxy(target[key].apply(target, arguments));
+    function wrapSelfReturningFunction(target, key) {
+        return function () {
+            return createReactWrapperProxy(target[key].apply(target, arguments));
+        }
     }
 }
 

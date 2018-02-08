@@ -13,3 +13,15 @@ it('can click', () => {
 
     expect(handler).toHaveBeenCalled();
 });
+
+describe('find', () => {
+    it('returns proxy', () => {
+        const handler = jest.fn();
+        const wrapper = mount(<div><button onClick={handler}/></div>);
+        const buttonWrapper = wrapper.find('button');
+
+        buttonWrapper.click();
+    
+        expect(handler).toHaveBeenCalled();
+    });
+});
