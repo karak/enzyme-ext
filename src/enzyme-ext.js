@@ -1,42 +1,28 @@
 import Enzyme from 'enzyme';
+import createExtensionProxy from './createExtensionProxy';
 
-/** wrapper of @see {Enzyme.ReactWrapper} */
-function createReactWrapperProxy(wrapper) {
-    return new Proxy(wrapper, {
-        'get': function (target, key) {
-            switch(key) {
-            // Custom functions.
-            case 'click':
-                return click;
-            case 'change':
-                return change;
-            // Wrap self-returning functions.
-            // TODO: Enumerate all of them.
-            case 'find':
-                return wrapSelfReturningFunction(target, key);
-            // the others
-            default:
-                return target[key]; 
-            }
-        }
-    });
-
+/** Mixin-methods holder */
+class ReactWrapperMixin {
     /** shorthand to @see {Enzyme.ReactWrapper.click} */
-    function click() {
+    click() {
         this.simulate('click', ...arguments);
     }
 
     /** shorthand to @see {Enzyme.ReactWrapper.change} */
-    function change() {
+    change() {
         this.simulate('change', ...arguments);
     }
+}
 
-    /** Call the original function that returns `this` and wrap the return value */
-    function wrapSelfReturningFunction(target, key) {
-        return function () {
-            return createReactWrapperProxy(target[key].apply(target, arguments));
-        }
-    }
+/** wrapper of @see {Enzyme.ReactWrapper} */
+function createReactWrapperProxy(wrapper) {
+    return createExtensionProxy(wrapper, {
+        // Custom functions.
+        mixin: ReactWrapperMixin.prototype,
+        // Self-returning functions to wrap.
+        // TODO: Enumerate all of them.
+        returnSelf: ['find']
+    });
 }
 
 /** wrapper of @see {Enzyme.mount} */
