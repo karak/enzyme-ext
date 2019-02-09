@@ -15,7 +15,7 @@ export default function createExtensionProxy(target, args) {
     }
 
     const validator = {
-        'get': function (target, key) {
+        'get': function (target, key, receiver) {
             // Mixin methods to intercept
             if (mixin.hasOwnProperty(key)) {
                 return mixin[key];
@@ -25,7 +25,8 @@ export default function createExtensionProxy(target, args) {
                 return wrapping[key];
             }
             // the others to pass-through
-            return target[key]; 
+            const original = Reflect.get(target, key, receiver);
+            return original; 
         }
     };
 
@@ -33,8 +34,9 @@ export default function createExtensionProxy(target, args) {
 
     /** Call the original function that returns `this` and wrap the return value */
     function wrapSelfReturningFunction(target, key) {
+        const original = target[key]; // bind when setup before proxy applied.
         return function () {
-            return new Proxy(target[key].apply(target, arguments), validator);
+            return new Proxy(original.apply(target, arguments), validator);
         }
     }
 }
